@@ -1,8 +1,11 @@
+#[cfg(feature="heapsizeof")]
 extern crate heapsize;
 use std::cmp::Ordering;
 use std::hash::{Hash, Hasher};
 use std::fmt;
 use std::ops::Deref;
+
+#[cfg(feature="heapsizeof")]
 use heapsize::HeapSizeOf;
 
 #[macro_export]
@@ -73,6 +76,7 @@ macro_rules! impl_elastic_array {
 			}
 		}
 
+        #[cfg(feature="heapsizeof")]
 		impl<T> HeapSizeOf for $name<T> where T: HeapSizeOf {
 			fn heap_size_of_children(&self) -> usize {
 				match self.raw {
