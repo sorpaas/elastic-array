@@ -13,6 +13,8 @@ name = "elastic_array"
 heapsize = { version = "0.4", optional = true }
 
 [features]
+default = ["std"]
+std = []
 heapsizeof = ["heapsize"]
 
 [dev-dependencies]

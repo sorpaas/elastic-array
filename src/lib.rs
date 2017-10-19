@@ -1,12 +1,28 @@
+#![cfg_attr(not(feature = "std"), no_std)]
+#![cfg_attr(not(feature = "std"), feature(alloc))]
+
+#[cfg(not(feature = "std"))]
+#[macro_use]
+extern crate alloc;
+
 #[cfg(feature="heapsizeof")]
 extern crate heapsize;
-use std::cmp::Ordering;
-use std::hash::{Hash, Hasher};
-use std::fmt;
-use std::ops::Deref;
+
+#[cfg(feature = "std")] use std::cmp::Ordering;
+#[cfg(feature = "std")] use std::hash::{Hash, Hasher};
+#[cfg(feature = "std")] use std::fmt;
+#[cfg(feature = "std")] use std::ops::Deref;
+
+#[cfg(not(feature = "std"))] use core::cmp::Ordering;
+#[cfg(not(feature = "std"))] use core::hash::{Hash, Hasher};
+#[cfg(not(feature = "std"))] use core::fmt;
+#[cfg(not(feature = "std"))] use core::ops::Deref;
 
 #[cfg(feature="heapsizeof")]
 use heapsize::HeapSizeOf;
+
+#[cfg(not(feature = "std"))]
+use alloc::Vec;
 
 #[macro_export]
 macro_rules! impl_elastic_array {
@@ -97,8 +113,14 @@ macro_rules! impl_elastic_array {
 
 		impl<T> $name<T> where T: Copy {
 			pub fn new() -> $name<T> {
+                #[cfg(feature = "std")]
+				use std::mem;
+
+                #[cfg(not(feature = "std"))]
+				use core::mem;
+
 				$name {
-					raw: $dummy::Arr(unsafe { ::std::mem::uninitialized() }),
+					raw: $dummy::Arr(unsafe { mem::uninitialized() }),
 					len: 0
 				}
 			}
@@ -117,6 +139,12 @@ macro_rules! impl_elastic_array {
 			}
 
 			pub fn push(&mut self, e: T) {
+                #[cfg(feature = "std")]
+				use std::ptr;
+
+                #[cfg(not(feature = "std"))]
+				use core::ptr;
+
 				match self.raw {
 					$dummy::Arr(ref mut a) if self.len < a.len() => {
 						unsafe {
@@ -128,7 +156,7 @@ macro_rules! impl_elastic_array {
 						vec.reserve(self.len + 1);
 
 						unsafe {
-							::std::ptr::copy(self.raw.slice().as_ptr(), vec.as_mut_ptr(), self.len);
+							ptr::copy(self.raw.slice().as_ptr(), vec.as_mut_ptr(), self.len);
 							vec.set_len(self.len);
 						}
 
@@ -153,7 +181,13 @@ macro_rules! impl_elastic_array {
 			}
 
 			pub fn clear(&mut self) {
-				self.raw = $dummy::Arr(unsafe { ::std::mem::uninitialized() });
+                #[cfg(feature = "std")]
+				use std::mem;
+
+                #[cfg(not(feature = "std"))]
+				use core::mem;
+
+				self.raw = $dummy::Arr(unsafe {mem::uninitialized() });
 				self.len = 0;
 			}
 
@@ -163,12 +197,18 @@ macro_rules! impl_elastic_array {
 			}
 
 			pub fn into_vec(self) -> Vec<T> {
+                #[cfg(feature = "std")]
+				use std::ptr;
+
+                #[cfg(not(feature = "std"))]
+				use core::ptr;
+
 				match self.raw {
 					$dummy::Arr(a) => {
 						let mut vec = vec![];
 						vec.reserve(self.len);
-						unsafe {	
-							::std::ptr::copy(a.as_ptr(), vec.as_mut_ptr(), self.len);
+						unsafe {
+							ptr::copy(a.as_ptr(), vec.as_mut_ptr(), self.len);
 							vec.set_len(self.len);
 						}
 						vec
@@ -178,7 +218,11 @@ macro_rules! impl_elastic_array {
 			}
 
 			pub fn insert_slice(&mut self, index: usize, elements: &[T]) {
+                #[cfg(feature = "std")]
 				use std::ptr;
+
+                #[cfg(not(feature = "std"))]
+				use core::ptr;
 
 				let elen = elements.len();
 
@@ -259,6 +303,15 @@ macro_rules! impl_elastic_array {
 			}
 		}
 
+        #[cfg(not(feature = "std"))]
+		impl<T> ::core::convert::AsRef<[T]> for $name<T> {
+			#[inline]
+			fn as_ref(&self) -> &[T] {
+				self.slice()
+			}
+		}
+
+        #[cfg(feature = "std")]
 		impl<T> ::std::convert::AsRef<[T]> for $name<T> {
 			#[inline]
 			fn as_ref(&self) -> &[T] {
@@ -266,6 +319,15 @@ macro_rules! impl_elastic_array {
 			}
 		}
 
+        #[cfg(not(feature = "std"))]
+		impl<T> ::core::borrow::Borrow<[T]> for $name<T> {
+			#[inline]
+			fn borrow(&self) -> &[T] {
+				self.slice()
+			}
+		}
+
+        #[cfg(feature = "std")]
 		impl<T> ::std::borrow::Borrow<[T]> for $name<T> {
 			#[inline]
 			fn borrow(&self) -> &[T] {
@@ -273,6 +335,18 @@ macro_rules! impl_elastic_array {
 			}
 		}
 
+        #[cfg(not(feature = "std"))]
+        impl<T> ::core::ops::DerefMut for $name<T> {
+			#[inline]
+			fn deref_mut(&mut self) -> &mut [T] {
+				match self.raw {
+					$dummy::Arr(ref mut a) => &mut a[..self.len],
+					$dummy::Vec(ref mut v) => v
+				}
+			}
+		}
+
+        #[cfg(feature = "std")]
 		impl<T> ::std::ops::DerefMut for $name<T> {
 			#[inline]
 			fn deref_mut(&mut self) -> &mut [T] {
