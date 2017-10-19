@@ -8,4 +8,4 @@ matrix:
     - rust: nightly
 script:
   - cargo test
-  - if [ "$TRAVIS_RUST_VERSION" -eq "nightly" ]; then cargo build --no-default-features; fi
+  - if [ "$TRAVIS_RUST_VERSION" == "nightly" ]; then cargo build --no-default-features; fi
