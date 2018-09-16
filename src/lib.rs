@@ -22,7 +22,7 @@ extern crate heapsize;
 use heapsize::HeapSizeOf;
 
 #[cfg(not(feature = "std"))]
-use alloc::Vec;
+use alloc::vec::Vec;
 
 #[macro_export]
 macro_rules! impl_elastic_array {
