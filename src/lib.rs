@@ -84,7 +84,7 @@ macro_rules! impl_elastic_array {
 			fn cmp(&self, other: &Self) -> Ordering {
 				(&**self).cmp(&*other)
 			}
-		} 
+		}
 
 		impl<T> Hash for $name<T> where T: Hash {
 			fn hash<H>(&self, state: &mut H) where H: Hasher {
@@ -92,7 +92,7 @@ macro_rules! impl_elastic_array {
 			}
 		}
 
-        #[cfg(feature="heapsizeof")]
+		#[cfg(feature="heapsizeof")]
 		impl<T> HeapSizeOf for $name<T> where T: HeapSizeOf {
 			fn heap_size_of_children(&self) -> usize {
 				match self.raw {
@@ -119,10 +119,10 @@ macro_rules! impl_elastic_array {
 
 		impl<T> $name<T> where T: Copy {
 			pub fn new() -> $name<T> {
-                #[cfg(feature = "std")]
+				#[cfg(feature = "std")]
 				use std::mem;
 
-                #[cfg(not(feature = "std"))]
+				#[cfg(not(feature = "std"))]
 				use core::mem;
 
 				$name {
@@ -145,10 +145,10 @@ macro_rules! impl_elastic_array {
 			}
 
 			pub fn push(&mut self, e: T) {
-                #[cfg(feature = "std")]
+				#[cfg(feature = "std")]
 				use std::ptr;
 
-                #[cfg(not(feature = "std"))]
+				#[cfg(not(feature = "std"))]
 				use core::ptr;
 
 				match self.raw {
@@ -187,10 +187,10 @@ macro_rules! impl_elastic_array {
 			}
 
 			pub fn clear(&mut self) {
-                #[cfg(feature = "std")]
+				#[cfg(feature = "std")]
 				use std::mem;
 
-                #[cfg(not(feature = "std"))]
+				#[cfg(not(feature = "std"))]
 				use core::mem;
 
 				self.raw = $dummy::Arr(unsafe {mem::uninitialized() });
@@ -203,10 +203,10 @@ macro_rules! impl_elastic_array {
 			}
 
 			pub fn into_vec(self) -> Vec<T> {
-                #[cfg(feature = "std")]
+				#[cfg(feature = "std")]
 				use std::ptr;
 
-                #[cfg(not(feature = "std"))]
+				#[cfg(not(feature = "std"))]
 				use core::ptr;
 
 				match self.raw {
@@ -224,10 +224,10 @@ macro_rules! impl_elastic_array {
 			}
 
 			pub fn insert_slice(&mut self, index: usize, elements: &[T]) {
-                #[cfg(feature = "std")]
+				#[cfg(feature = "std")]
 				use std::ptr;
 
-                #[cfg(not(feature = "std"))]
+				#[cfg(not(feature = "std"))]
 				use core::ptr;
 
 				let elen = elements.len();
@@ -235,7 +235,7 @@ macro_rules! impl_elastic_array {
 				if elen == 0 {
 					return;
 				}
-				
+
 				let len = self.len;
 				assert!(index <= len);
 
@@ -259,14 +259,14 @@ macro_rules! impl_elastic_array {
 							let ob = self.raw.slice().as_ptr();
 							let ep = elements.as_ptr();
 							let oe = ob.offset(index as isize);
-							
+
 							// copy begining of an array
 							ptr::copy(ob, p, index);
 
 							// copy new elements
 							ptr::copy(ep, p.offset(index as isize), elen);
 
-							// copy end of an array	
+							// copy end of an array
 							ptr::copy(oe, p.offset((index + elen) as isize), len - index);
 						}
 						vec.set_len(self.len + elen);
@@ -309,7 +309,7 @@ macro_rules! impl_elastic_array {
 			}
 		}
 
-        #[cfg(not(feature = "std"))]
+		#[cfg(not(feature = "std"))]
 		impl<T> ::core::convert::AsRef<[T]> for $name<T> {
 			#[inline]
 			fn as_ref(&self) -> &[T] {
@@ -317,7 +317,7 @@ macro_rules! impl_elastic_array {
 			}
 		}
 
-        #[cfg(feature = "std")]
+		#[cfg(feature = "std")]
 		impl<T> ::std::convert::AsRef<[T]> for $name<T> {
 			#[inline]
 			fn as_ref(&self) -> &[T] {
@@ -325,7 +325,7 @@ macro_rules! impl_elastic_array {
 			}
 		}
 
-        #[cfg(not(feature = "std"))]
+		#[cfg(not(feature = "std"))]
 		impl<T> ::core::borrow::Borrow<[T]> for $name<T> {
 			#[inline]
 			fn borrow(&self) -> &[T] {
@@ -333,7 +333,7 @@ macro_rules! impl_elastic_array {
 			}
 		}
 
-        #[cfg(feature = "std")]
+		#[cfg(feature = "std")]
 		impl<T> ::std::borrow::Borrow<[T]> for $name<T> {
 			#[inline]
 			fn borrow(&self) -> &[T] {
@@ -341,8 +341,8 @@ macro_rules! impl_elastic_array {
 			}
 		}
 
-        #[cfg(not(feature = "std"))]
-        impl<T> ::core::ops::DerefMut for $name<T> {
+		#[cfg(not(feature = "std"))]
+		impl<T> ::core::ops::DerefMut for $name<T> {
 			#[inline]
 			fn deref_mut(&mut self) -> &mut [T] {
 				match self.raw {
@@ -352,7 +352,7 @@ macro_rules! impl_elastic_array {
 			}
 		}
 
-        #[cfg(feature = "std")]
+		#[cfg(feature = "std")]
 		impl<T> ::std::ops::DerefMut for $name<T> {
 			#[inline]
 			fn deref_mut(&mut self) -> &mut [T] {
@@ -440,5 +440,3 @@ mod tests {
 		assert_eq!(map.get(&[3, 4][..]), Some(&1i32));
 	}
 }
-
-
